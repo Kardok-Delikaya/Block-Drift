@@ -1,6 +1,6 @@
-using JetBrains.Annotations;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
@@ -16,21 +16,44 @@ public class GameManager : MonoBehaviour
     
     [Header("GameObjects")]
     public PlayerManager player;
-    
-    [Header("Finish Distance")]
-    public float finishY = 30;
 
+    [Header("Finish Distance")] 
+    public LevelData[] levelDatas;
+    private float _currentLevelLength = 30;
+    private bool _stageCompleted;
     private void Awake()
     {
-        if(Instance==null)
+        if (Instance == null)
+        {
             Instance = this;
+        }
         else
+        {
             Destroy(gameObject);
+            return;
+        }
+        
+        HandleLevelStart(PlayerPrefs.GetInt("LevelToStart"));
     }
 
     private void Update()
     {
-        if (isLevelEnded) return;
+        if (isLevelEnded)
+        {
+            if (Input.touchCount > 0 || Input.GetMouseButtonDown(0))
+            {
+                if (_stageCompleted)
+                {
+                    PlayerPrefs.SetInt("LevelToStart", PlayerPrefs.GetInt("LevelToStart") + 1);
+                    SceneManager.LoadScene(0);
+                }
+                else
+                {
+                    SceneManager.LoadScene(0);
+                }
+            }
+            return;
+        }
         
         if (!_isLevelStarted)
         {
@@ -45,9 +68,9 @@ public class GameManager : MonoBehaviour
 
         player.Tick();
         
-        UIManager.Instance.SetProgressSliderValue(player.transform.position.y / finishY);
+        UIManager.Instance.SetProgressSliderValue(player.transform.position.y / _currentLevelLength);
         
-        if (player.transform.position.y >= finishY)
+        if (player.transform.position.y >= _currentLevelLength)
         {
             StageCompleted();
         }
@@ -71,6 +94,7 @@ public class GameManager : MonoBehaviour
     public void StageCompleted()
     {
         isLevelEnded= true;
+        _stageCompleted = true;
         UIManager.Instance.StageCompleted();
     }
 
@@ -79,4 +103,27 @@ public class GameManager : MonoBehaviour
         isLevelEnded= true;
         UIManager.Instance.StageFailed();
     }
+
+    private void HandleLevelStart(int levelToStart)
+    {
+        if (levelToStart >= levelDatas.Length)
+        {
+            levelToStart = 0;
+            PlayerPrefs.SetInt("LevelStart", 0);
+        }
+        
+        foreach (LevelData levelData in levelDatas)
+        {
+            levelData.levelPrefab.SetActive(false);
+        }
+        
+        levelDatas[levelToStart].levelPrefab.SetActive(true);
+        _currentLevelLength = levelDatas[levelToStart].levelLength;
+    }
+}
+
+[System.Serializable]
+public class LevelData{
+    public int levelLength;
+    public GameObject levelPrefab;
 }

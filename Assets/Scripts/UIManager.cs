@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
@@ -18,7 +19,8 @@ public class UIManager : MonoBehaviour
 
     [Header("Texts")]
     [SerializeField] private GameObject gameStartText;
-    [SerializeField] private GameObject stageCompleted;
+    [SerializeField] private GameObject stageCompletedTextGameObject;
+    [SerializeField] private GameObject stageFailedTextGameObject;
     
     [Header("Upgrade Panel")]
     public GameObject upgradePanel;
@@ -76,11 +78,11 @@ public class UIManager : MonoBehaviour
 
     public void StageCompleted()
     {
-        stageCompleted.SetActive(true);
+        stageCompletedTextGameObject.SetActive(true);
     }
 
     public void StageFailed()
     {
-        
+        stageFailedTextGameObject.SetActive(true);
     }
 }
