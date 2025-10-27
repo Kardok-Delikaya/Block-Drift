@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -21,16 +23,25 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject gameStartText;
     [SerializeField] private GameObject stageCompletedTextGameObject;
     [SerializeField] private GameObject stageFailedTextGameObject;
+    [SerializeField] private TMP_Text levelText;
     
     [Header("Upgrade Panel")]
     public GameObject upgradePanel;
     
+    [Header("Pause Panel")]
+    [SerializeField] private GameObject pausePanel;
+    [SerializeField] private TMP_Text countDownText;
     private void Awake()
     {
         if (Instance == null)
             Instance = this;
         else
             Destroy(gameObject);
+    }
+
+    private void Start()
+    {
+        levelText.text="Level: "+(PlayerPrefs.GetInt("LevelToStart")+1);
     }
 
     public void HandleHealthIconStart(int maxHealth)
@@ -61,6 +72,25 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void PauseGame()
+    {
+        pausePanel.SetActive(true);
+    }
+    
+    public IEnumerator ResumeEnumerator()
+    {
+        pausePanel.SetActive(false);
+        countDownText.gameObject.SetActive(true);
+        countDownText.text = "Game will resume in 3 seconds...";
+        yield return new WaitForSeconds(1);
+        countDownText.text = "Game will resume in 2 seconds...";
+        yield return new WaitForSeconds(1);
+        countDownText.text = "Game will resume in 1 seconds...";
+        yield return new WaitForSeconds(1);
+        countDownText.gameObject.SetActive(false);
+        GameManager.instance.ActivateGameLoop();
+    }
+    
     public void SetProgressSliderValue(float value)
     {
         progressSlider.value = value;
@@ -69,11 +99,6 @@ public class UIManager : MonoBehaviour
     public void SetXpSliderValue(float value)
     {
         xpSlider.value = value;
-    }
-
-    public void CloseGameStartText()
-    {
-        gameStartText.SetActive(false);
     }
 
     public void StageCompleted()

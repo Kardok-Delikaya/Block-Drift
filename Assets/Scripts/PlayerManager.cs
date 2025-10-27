@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
@@ -15,7 +17,7 @@ public class PlayerManager : MonoBehaviour
     public int maxHealth = 3;
     private int _currentHealth;
     private bool _isTouching = false;
-
+    private bool _isInvincible = false;
     private void Start()
     {
         _currentHealth = maxHealth;
@@ -35,31 +37,32 @@ public class PlayerManager : MonoBehaviour
         {
             if (_isTouching)
             {
-                w.Tick();
+                w.AttackTick();
             }
+            
+            w.ProjectileTick();
         }
     }
-    
+
     private void HandleMovementInput()
     {
         if (Input.touchCount > 0)
         {
-            Touch touch = Input.GetTouch(0);
-
-            if (touch.phase == TouchPhase.Began)
+            if (Input.GetTouch(0).phase == TouchPhase.Began)
                 _isTouching = true;
-            
-            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+
+            if (Input.GetTouch(0).phase == TouchPhase.Ended || Input.GetTouch(0).phase == TouchPhase.Canceled)
                 _isTouching = false;
 
-            if (touch.phase == TouchPhase.Moved)
+            if (Input.GetTouch(0).phase == TouchPhase.Moved)
             {
-                float moveX = (touch.deltaPosition.x / Screen.width) * horizontalSpeed * 50f;
+                float moveX = (Input.GetTouch(0).deltaPosition.x / Screen.width) * horizontalSpeed*50f;
                 Vector3 newPos = transform.position + Vector3.right * moveX * Time.deltaTime;
                 newPos.x = Mathf.Clamp(newPos.x, -xLimit, xLimit);
                 transform.position = newPos;
             }
         }
+
 
         if (Application.isEditor)
         {
@@ -75,14 +78,31 @@ public class PlayerManager : MonoBehaviour
             }
         }
     }
-    
+
+    private IEnumerator BecomeInvincible()
+    {
+        _isInvincible = true;
+        GetComponent<SpriteRenderer>().color = Color.blue;
+        
+        yield return new WaitForSeconds(2f);
+        
+        GetComponent<SpriteRenderer>().color = Color.white;
+        _isInvincible = false;
+    }
+
     public void TakeDamage()
     {
+        if (_isInvincible) return;
+        
         _currentHealth--;
         
         if (_currentHealth <= 0)
         {
-            GameManager.Instance.StageFailed();
+            GameManager.instance.StageFailed();
+        }
+        else
+        {
+            StartCoroutine(BecomeInvincible());
         }
         
         UIManager.Instance.UpdateHealthIconsColor(_currentHealth);

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
@@ -8,20 +9,19 @@ public class Projectile : MonoBehaviour
     private int _durability = 1;
     private float _speed = 10f;
 
-    private void Update()
+    public void Tick()
     {
         transform.Translate(Vector3.up * _speed * Time.deltaTime);
 
-        if (Vector2.Distance(transform.position, _weapon.transform.position) > 8)
+        if (transform.position.y-_weapon.transform.position.y>8)
         {
-            _weapon.AddProjectileToDeactivatedPool(gameObject);
+            _weapon.AddProjectileToDeactivatedPool(this);
             gameObject.SetActive(false);
         }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        
         if (other.CompareTag("Obstacle"))
         {
             if (_durability > 0)
@@ -32,7 +32,7 @@ public class Projectile : MonoBehaviour
 
             if (_durability <= 0)
             {
-                _weapon.AddProjectileToDeactivatedPool(gameObject);
+                _weapon.AddProjectileToDeactivatedPool(this);
                 gameObject.SetActive(false);
             }
         }

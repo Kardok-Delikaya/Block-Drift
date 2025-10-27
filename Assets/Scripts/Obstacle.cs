@@ -20,7 +20,7 @@ public class Obstacle : MonoBehaviour
         if (health <= 0)
         {
             Destroy(gameObject);
-            GameManager.Instance.BlockKilled(_xpReward);
+            GameManager.instance.BlockKilled(_xpReward);
         }
 
         healthText.text = health.ToString();

@@ -13,9 +13,10 @@ public class Weapon : MonoBehaviour
     private float _shootTimer=0.4f;
 
     [Header("Object Pooling")]
-    [SerializeField] private List<GameObject> deactivatedProjectilePool;
+    [SerializeField] private List<Projectile> activeProjectilePool;
+    [SerializeField] private List<Projectile> deactiveProjectilePool;
     
-    public void Tick()
+    public void AttackTick()
     {
         _shootTimer-= Time.deltaTime;
         
@@ -26,27 +27,37 @@ public class Weapon : MonoBehaviour
         }
     }
 
+    public void ProjectileTick()
+    {
+        if(activeProjectilePool.Count>0)
+            foreach (var projectile in activeProjectilePool)
+                projectile.Tick();
+    }
+
     private void Shoot()
     {
         if (projectilePrefab == null || shootPoint == null) return;
 
-        if (deactivatedProjectilePool.Count > 0)
+        if (deactiveProjectilePool.Count > 0)
         {
-            deactivatedProjectilePool[0].SetActive(true);
-            deactivatedProjectilePool[0].transform.position = shootPoint.position;
-            deactivatedProjectilePool[0].GetComponent<Projectile>().GetStats(damage,durability,speed,this);
-            deactivatedProjectilePool.RemoveAt(0);
+            deactiveProjectilePool[0].gameObject.SetActive(true);
+            deactiveProjectilePool[0].transform.position = shootPoint.position;
+            deactiveProjectilePool[0].GetComponent<Projectile>().GetStats(damage,durability,speed,this);
+            activeProjectilePool.Add(deactiveProjectilePool[0]);
+            deactiveProjectilePool.RemoveAt(0);
             
         }
         else
         {
             GameObject projectile= Instantiate(projectilePrefab, shootPoint.position, Quaternion.identity);
             projectile.GetComponent<Projectile>().GetStats(damage,durability,speed,this);
+            activeProjectilePool.Add(projectile.GetComponent<Projectile>());
         }
     }
 
-    public void AddProjectileToDeactivatedPool(GameObject projectile)
+    public void AddProjectileToDeactivatedPool(Projectile projectile)
     {
-        deactivatedProjectilePool.Add(projectile);
+        activeProjectilePool.Remove(projectile);
+        deactiveProjectilePool.Add(projectile);
     }
 }
