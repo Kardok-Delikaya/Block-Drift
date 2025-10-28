@@ -10,11 +10,11 @@ public class Weapon : MonoBehaviour
     public int durability=1;
     public float shootRate=2.5f;
     [SerializeField] private float speed=10;
-    private float _shootTimer=0.4f;
+    private float _shootTimer;
 
     [Header("Object Pooling")]
-    [SerializeField] private List<Projectile> activeProjectilePool;
-    [SerializeField] private List<Projectile> deactiveProjectilePool;
+    [SerializeField] private List<Projectile> projectilePool;
+    [SerializeField] private List<Projectile> inactiveProjectilePool;
     
     public void AttackTick()
     {
@@ -29,35 +29,34 @@ public class Weapon : MonoBehaviour
 
     public void ProjectileTick()
     {
-        if(activeProjectilePool.Count>0)
-            foreach (var projectile in activeProjectilePool)
-                projectile.Tick();
+        foreach (Projectile projectile in projectilePool)
+        {
+            projectile.Tick();
+        }
     }
-
+    
     private void Shoot()
     {
         if (projectilePrefab == null || shootPoint == null) return;
 
-        if (deactiveProjectilePool.Count > 0)
+        if (inactiveProjectilePool.Count > 0)
         {
-            deactiveProjectilePool[0].gameObject.SetActive(true);
-            deactiveProjectilePool[0].transform.position = shootPoint.position;
-            deactiveProjectilePool[0].GetComponent<Projectile>().GetStats(damage,durability,speed,this);
-            activeProjectilePool.Add(deactiveProjectilePool[0]);
-            deactiveProjectilePool.RemoveAt(0);
+            inactiveProjectilePool[0].gameObject.SetActive(true);
+            inactiveProjectilePool[0].transform.position = shootPoint.position;
+            inactiveProjectilePool[0].GetComponent<Projectile>().GetStats(damage,durability,speed,this);
+            inactiveProjectilePool.RemoveAt(0);
             
         }
         else
         {
             GameObject projectile= Instantiate(projectilePrefab, shootPoint.position, Quaternion.identity);
             projectile.GetComponent<Projectile>().GetStats(damage,durability,speed,this);
-            activeProjectilePool.Add(projectile.GetComponent<Projectile>());
+            projectilePool.Add(projectile.GetComponent<Projectile>());
         }
     }
 
     public void AddProjectileToDeactivatedPool(Projectile projectile)
     {
-        activeProjectilePool.Remove(projectile);
-        deactiveProjectilePool.Add(projectile);
+        inactiveProjectilePool.Add(projectile);
     }
 }
