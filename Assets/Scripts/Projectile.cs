@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
@@ -11,9 +10,11 @@ public class Projectile : MonoBehaviour
 
     public void Tick()
     {
+        if (!gameObject.activeSelf) return;
+        
         transform.Translate(Vector3.up * _speed * Time.deltaTime);
 
-        if (transform.position.y-_weapon.transform.position.y>8)
+        if (gameObject.transform.position.y-_weapon.transform.position.y>8)
         {
             _weapon.AddProjectileToDeactivatedPool(this);
             gameObject.SetActive(false);
